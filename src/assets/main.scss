@@ -1,0 +1,12 @@
+@import "./variables";
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--color-gray-darker);
+}
