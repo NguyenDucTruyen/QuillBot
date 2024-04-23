@@ -35,7 +35,7 @@
   }
 
   .defaultBodySideBar {
-    // width: 256px;
+    min-width: 210px;
     background-color: #fff;
   }
 

@@ -10,7 +10,6 @@ declare module 'vue' {
     BaseModal: typeof import('./src/components/Common/BaseModal.vue')['default']
     ButtonIcon: typeof import('./src/components/Atom/ButtonIcon.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
-    Header: typeof import('./src/components/Layouts/Header.vue')['default']
     NavBar: typeof import('./src/components/Layouts/NavBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

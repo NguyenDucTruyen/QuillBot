@@ -17,19 +17,19 @@
       </div>
     </div>
     <div :class="$style.headerSection">
-      <div :class="$style.headerCenter">
+      <div :class="[$style.headerCenter,$style.headerCenterRight]">
         <button :class="$style.headerButtonPremium">
           <img src="@/assets/icons/Diamond.svg" :class="$style.headerButtonPremiumIcon" alt="notification">
-          <span :class="$style.headerButtonPremiumText" >Upgrade Premium</span>
+          <span :class="$style.headerButtonPremiumText">Upgrade Premium</span>
         </button>
         <div :class="$style.headerLanguage">
           <img src="https://assets.quillbot.com/images/American.svg" :class="$style.headerLanguageIcon" alt="">
         </div>
         <ButtonIcon>
-            <img src="@/assets/icons/Moon.svg" alt="notification">
+          <img src="@/assets/icons/Moon.svg" alt="notification">
         </ButtonIcon>
         <ButtonIcon>
-            <img src="@/assets/icons/User.svg" alt="notification">
+          <img src="@/assets/icons/User.svg" alt="notification">
         </ButtonIcon>
       </div>
     </div>
@@ -132,6 +132,10 @@
 
     .headerCenter {
         flex: 1;
+    }
+
+    .headerCenterRight {
+        justify-content: flex-end;
     }
 
     .headerRight {
