@@ -40,6 +40,7 @@ function toggleSidebar() {
   .defaultBodySideBar {
     transition: all 0.3s ease 0.5s;
     width: 50px;
+    min-width: 50px;
     background-color: #fff;
     &.defaultBodySideBarExpand {
       min-width: 210px;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
+import OpenAi from '@/api/generateAI.ts'
 
 interface MenuItem {
   name: string
@@ -108,6 +109,7 @@ const outputArea = ref()
 const container = ref()
 const inputFile = ref()
 const textInput = ref('')
+const answer = ref('')
 const menuItems = reactive([
   {
     name: 'History',
@@ -160,6 +162,18 @@ const menuItems = reactive([
   },
 
 ])
+
+async function fetchAnswer() {
+  answer.value = ''
+  try {
+    answer.value = await OpenAi.getParaphraseFullContent(textInput.value.trim())
+  }
+  catch (error) {
+  }
+  finally {
+    // isLoading.value = false
+  }
+}
 
 function hover(item: MenuItem, isHovering: boolean) {
   nextTick(() => {
@@ -230,8 +244,8 @@ function clearText() {
             @click=" clearText "
           />
           <textarea
+          v-model=" textInput "
             :class=" $style.paragrapherContainerTextarea " placeholder="To rewrite text, enter or paste here and press 'Paraphrase'"
-            @update:modelValue=" textInput "
           />
           <div :class=" $style.paragrapherContainerLeftFooter ">
             <div v-if="!textInput.trim()" :class=" $style.paragrapherContainerLeftUpload " @click=" uploadFile ">
@@ -245,7 +259,7 @@ function clearText() {
             <div v-else :class=" $style.paragrapherContainerLeftUpload ">
               <span :class=" $style.paragrapherContainerLeftCountWords ">{{ countWords(textInput) }} words</span>
             </div>
-            <button type="button" :class=" $style.paragrapherContainerLeftButtonSubmit ">
+            <button type="button" :class=" $style.paragrapherContainerLeftButtonSubmit " @click="fetchAnswer">
               Paraphrase
             </button>
           </div>
@@ -254,7 +268,7 @@ function clearText() {
           <div />
         </div>
         <div ref="outputArea" :class=" $style.paragrapherContainerRight ">
-          <span :class=" $style.paragrapherContainerTextarea " />
+          <span :class=" $style.paragrapherContainerTextarea ">{{ answer }}</span>
         </div>
       </div>
     </div>
