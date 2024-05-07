@@ -230,8 +230,8 @@ function clearText() {
             @click=" clearText "
           />
           <textarea
-            v-model=" textInput " :class=" $style.paragrapherContainerTextarea "
-            placeholder="To rewrite text, enter or paste here and press 'Paraphrase'"
+            :class=" $style.paragrapherContainerTextarea " placeholder="To rewrite text, enter or paste here and press 'Paraphrase'"
+            @update:modelValue=" textInput "
           />
           <div :class=" $style.paragrapherContainerLeftFooter ">
             <div v-if="!textInput.trim()" :class=" $style.paragrapherContainerLeftUpload " @click=" uploadFile ">

@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     BaseModal: typeof import('./src/components/Common/BaseModal.vue')['default']
     ButtonIcon: typeof import('./src/components/Atom/ButtonIcon.vue')['default']
-    ElButton: typeof import('element-plus/es')['ElButton']
     NavBar: typeof import('./src/components/Layouts/NavBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
