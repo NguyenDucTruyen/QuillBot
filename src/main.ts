@@ -3,7 +3,7 @@ import { createApp } from 'vue'
 import Root from './Root.vue'
 import router from './router'
 
-import './assets/main.scss'
+import './assets/scss/main.scss'
 
 const app = createApp(Root)
 app.use(router)

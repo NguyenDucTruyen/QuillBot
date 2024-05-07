@@ -1,19 +1,19 @@
 <script setup lang="ts">
+defineProps({
+  tooltipText: String,
+})
 </script>
 
 <template>
   <ToolTip>
     <div :class="$style.buttonIcon">
-        <slot />
-
+      <slot />
     </div>
-  </Tooltip>
+  </ToolTip>
 </template>
 
 <style lang="scss" module>
     .buttonIcon {
-        &:hover {
-        }
         cursor: pointer;
         background-color: rgba(60,64,67,.08);
         display: flex;

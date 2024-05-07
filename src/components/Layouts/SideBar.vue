@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
+import { useRoute } from 'vue-router'
 
 defineProps<{
   isExpand: boolean
 }>()
-defineEmits<{
-  (e: 'toggleSidebar'): void
-}>()
+
+const route = useRoute()
+
 const menuList = [
   {
     id: 1,
@@ -78,38 +79,38 @@ const menuToolList = [
     path: '/',
   },
 ]
-const activeItem = ref<number>(1)
-const hoverExpand = ref<boolean>(false)
-
-function handleActiveItem(id: number) {
-  activeItem.value = id
-}
 </script>
 
 <template>
-  <div :class="$style.sidebarContainer" @click="$emit('toggleSidebar')">
+  <div :class="$style.sidebarContainer">
     <div :class="[$style.sidebarItemBorder, $style.sidebarItemBox]">
-      <div v-for="item in menuList" :key="item.id" @click="handleActiveItem(item.id)">
-        <div :class="$style.sidebarItem">
+      <div v-for="item in menuList" :key="item.id">
+        <RouterLink :to="item.path" :class="$style.sidebarItem">
           <div
             :style="{ backgroundColor: item.color }"
-            :class="[$style.sidebarBorderItem, activeItem === item.id && $style.sidebarActiveItem]"
+            :class="[$style.sidebarBorderItem, route.path === item.path && $style.sidebarActiveItem]"
           />
           <div v-if="item.id < 6" :class="$style.sidebarItemIconBox" :style="{ backgroundColor: item.color }">
             <img :src="item.icon" alt="" width="20" height="20">
           </div>
           <img v-else :src="item.icon" alt="" width="24" height="24">
-          <p :class="$style.sidebarItemTitle">
+          <p
+            v-show="isExpand"
+            :class="[$style.sidebarItemTitle, route.path === item.path && $style.sidebarActiveItem]"
+          >
             {{ item.title }}
           </p>
-        </div>
+        </RouterLink>
       </div>
     </div>
     <div :class="[$style.sidebarItemBorder, $style.sidebarPemiumItem]">
       <div :class="$style.sidebarItem">
         <div :class="$style.sidebarBorderItem" />
-        <Icon :class="$style.sidebarItemIcon" fill="#dc9e00" icon="mdi-light:diamond" />
-        <p :class="[$style.sidebarItemTitle, $style.sidebarPemiumItemText]">
+        <Icon :class="$style.sidebarItemIcon" style="color:#dc9e00" icon="mdi-light:diamond" />
+        <p
+          v-show="isExpand"
+          :class="[$style.sidebarItemTitle, $style.sidebarPemiumItemText]"
+        >
           QuillBot Premium
         </p>
       </div>
@@ -119,10 +120,16 @@ function handleActiveItem(id: number) {
         <div :class="$style.sidebarItem">
           <div :class="$style.sidebarBorderItem" />
           <img :src="item.icon" alt="" width="24" height="24">
-          <p :class="$style.sidebarItemTitle">
+          <p
+            v-show="isExpand"
+            :class="$style.sidebarItemTitle"
+          >
             {{ item.title }}
           </p>
-          <Icon v-show="hoverExpand || isExpand" :class="$style.sidebarItemBoxIcon" icon="material-symbols:ungroup" />
+          <Icon
+            v-show="isExpand" :class="$style.sidebarItemBoxIcon" style="color: #dc9e00"
+            icon="material-symbols:ungroup"
+          />
         </div>
       </div>
     </div>
@@ -130,14 +137,20 @@ function handleActiveItem(id: number) {
       <div :class="$style.sidebarItem">
         <div :class="$style.sidebarBorderItem" />
         <Icon :class="$style.sidebarItemIcon" icon="ic:outline-help-outline" />
-        <p :class="$style.sidebarItemTitle">
+        <p
+          v-show="isExpand"
+          :class="$style.sidebarItemTitle"
+        >
           Help Center
         </p>
       </div>
       <div :class="$style.sidebarItem">
         <div :class="$style.sidebarBorderItem" />
         <Icon :class="$style.sidebarItemIcon" icon="material-symbols:mail-outline" />
-        <p :class="$style.sidebarItemTitle">
+        <p
+          v-show="isExpand"
+          :class="$style.sidebarItemTitle"
+        >
           Contact us
         </p>
       </div>
@@ -177,6 +190,7 @@ function handleActiveItem(id: number) {
     gap: 8px;
     height: 40px;
     width: 100%;
+    text-decoration: none;
     cursor: pointer;
 
     &:hover {
@@ -226,6 +240,11 @@ function handleActiveItem(id: number) {
     font-size: 13px;
     width: 65%;
     font-weight: 500;
+    letter-spacing: .3px;
+
+    &.sidebarActiveItem {
+        font-weight: 600;
+    }
 }
 
 .sidebarItemBorder {

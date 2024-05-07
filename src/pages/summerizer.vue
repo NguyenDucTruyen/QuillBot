@@ -2,5 +2,5 @@
 </script>
 
 <template>
-  <h1>src/pages/paragrapher.vue</h1>
+  <h1>summerizer</h1>
 </template>
