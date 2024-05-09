@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import OpenAi from '@/api/generateAI.ts'
+// import OpenAi from '@/api/generateAI.ts'
+import gemini from '@/api/generateParaphrase.ts'
 
 interface MenuItem {
   name: string
@@ -43,66 +44,52 @@ const listModes = [
     id: 1,
     name: 'Standard',
     code: 'standard',
-
   },
   {
     id: 2,
     name: 'Fluency',
     code: 'fluency',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
   {
     id: 3,
     name: 'Natural',
     code: 'natural',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
   {
     id: 4,
     name: 'Formal',
     code: 'formal',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
   {
     id: 5,
     name: 'Academic',
     code: 'academic',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
   {
     id: 6,
     name: 'Simple',
     code: 'simple',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
   {
     id: 7,
     name: 'Creative',
     code: 'creative',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
   {
     id: 8,
     name: 'Expand',
     code: 'expand',
-    languages: [
-      'en',
-    ],
+    languages: ['en'],
   },
 ]
 const currentMode = ref('standard')
+const isLoading = ref(false)
 
 const inputArea = ref()
 const outputArea = ref()
@@ -110,6 +97,9 @@ const container = ref()
 const inputFile = ref()
 const textInput = ref('')
 const answer = ref('')
+const paraphraseText = ref('')
+
+const popUp  = ref()
 const menuItems = reactive([
   {
     name: 'History',
@@ -150,7 +140,8 @@ const menuItems = reactive([
     name: 'Feedback',
     src: '/src/assets/icons/message-square-lines-alt-svgrepo-com.svg',
     srcDisplay: '',
-    hoverSrc: '/src/assets/icons/svgHoverDirection/message-square-lines-alt-svgrepo-com.svg',
+    hoverSrc:
+      '/src/assets/icons/svgHoverDirection/message-square-lines-alt-svgrepo-com.svg',
     isPremium: false,
   },
   {
@@ -160,18 +151,20 @@ const menuItems = reactive([
     hoverSrc: '/src/assets/icons/svgHoverDirection/keyboard-svgrepo-com.svg',
     isPremium: false,
   },
-
 ])
 
 async function fetchAnswer() {
   answer.value = ''
   try {
-    answer.value = await OpenAi.getParaphraseFullContent(textInput.value.trim())
+    isLoading.value = true
+    answer.value = await gemini.getParaphraseFullContent(
+      textInput.value.trim(),
+    )
   }
   catch (error) {
   }
   finally {
-    // isLoading.value = false
+    isLoading.value = false
   }
 }
 
@@ -186,15 +179,13 @@ function countWords(text: string): number {
 function uploadFile() {
   inputFile.value.click()
 }
-function handleUploadFile() {
-
-}
 function handleCurrentLanguage(code: string) {
   currentLanguage.value = code
   currentMode.value = 'standard'
 }
 function mouseMoveHandler(event: MouseEvent) {
-  const leftWidth = event.clientX - container.value.getBoundingClientRect().left
+  const leftWidth
+    = event.clientX - container.value.getBoundingClientRect().left
   if (inputArea.value)
     inputArea.value.style.width = `${leftWidth}px`
   outputArea.value.style.width = `calc(100% - ${leftWidth}px)`
@@ -209,81 +200,189 @@ function handleDrag() {
 function clearText() {
   textInput.value = ''
 }
+const position = ref({ x: 0, y: 0 })
+const display = ref(false)
+function handleDisplayPopup() {
+  const selection = window.getSelection()
+  if (selection?.toString().length === 0)
+    return
+  display.value = true
+}
+function handleBlur() {
+  display.value = false
+  paraphraseText.value = ''
+}
+onMounted(() => {
+  document.addEventListener('selectionchange', async () => {
+    const selection = window.getSelection()
+
+    if (!selection?.rangeCount || selection.toString().length === 0) {
+      display.value = false
+      paraphraseText.value = ''
+      return
+    }
+    // console.log(popUp.value)
+
+    // const contentParaphrase = selection.toString()
+    // paraphraseText.value = await gemini.getParaphraseText(answer.value, contentParaphrase)
+    paraphraseText.value = 'Thay doi o day'
+    // console.log(paraphraseText.value)
+
+    const range = selection.getRangeAt(0)
+    position.value = {
+      x: range.getBoundingClientRect().left,
+      y: range.getBoundingClientRect().bottom,
+    }
+  })
+})
 </script>
 
 <template>
-  <div :class=" $style.paragrapher ">
-    <div :class=" $style.paragrapherForm ">
-      <div :class=" $style.paragrapherHeader ">
+  <div :class="$style.paragrapher">
+    <div :class="$style.paragrapherForm">
+      <div :class="$style.paragrapherHeader">
         <div
-          v-for="item in languageList" :key=" item.id "
-          :class=" [$style.paragrapherHeaderLanguage, currentLanguage === item.code && $style.paragrapherHeaderLanguageActive] "
+          v-for="item in languageList"
+          :key="item.id"
+          :class="[
+            $style.paragrapherHeaderLanguage,
+            currentLanguage === item.code
+              && $style.paragrapherHeaderLanguageActive,
+          ]"
           @click="handleCurrentLanguage(item.code)"
         >
           {{ item.name }}
         </div>
       </div>
-      <div :class=" $style.paragrapherModes ">
-        <div :class=" $style.paragrapherModesTitle ">
+      <div :class="$style.paragrapherModes">
+        <div :class="$style.paragrapherModesTitle">
           Modes:
         </div>
-        <div v-for="item in listModes" :key=" item.id " div>
+        <div v-for="item in listModes" :key="item.id" div>
           <div
-            v-if="item.code === 'standard' || item?.languages?.includes(currentLanguage)"
-            :class=" [$style.paragrapherModesLanguage, currentMode === item.code && $style.paragrapherModesLanguageActive] "
+            v-if="
+              item.code === 'standard'
+                || item?.languages?.includes(currentLanguage)
+            "
+            :class="[
+              $style.paragrapherModesLanguage,
+              currentMode === item.code
+                && $style.paragrapherModesLanguageActive,
+            ]"
             @click="currentMode = item.code"
           >
             {{ item.name }}
           </div>
         </div>
       </div>
-      <div ref="container" :class=" $style.paragrapherContainer ">
-        <div ref="inputArea" :class=" $style.paragrapherContainerLeft ">
+      <div ref="container" :class="$style.paragrapherContainer">
+        <div ref="inputArea" :class="$style.paragrapherContainerLeft">
           <Icon
-            v-if="textInput.trim()" icon="mdi:trash-outline" :class=" $style.paragrapherIconDelete "
-            @click=" clearText "
+            v-if="textInput.trim()"
+            icon="mdi:trash-outline"
+            :class="$style.paragrapherIconDelete"
+            @click="clearText"
           />
           <textarea
             v-model="textInput"
-            :class=" $style.paragrapherContainerTextarea "
+            :class="$style.paragrapherContainerTextarea"
             placeholder="To rewrite text, enter or paste here and press 'Paraphrase'"
           />
-          <div :class=" $style.paragrapherContainerLeftFooter ">
-            <div v-if="!textInput.trim()" :class=" $style.paragrapherContainerLeftUpload " @click=" uploadFile ">
+          <div :class="$style.paragrapherContainerLeftFooter">
+            <div
+              v-if="!textInput.trim()"
+              :class="$style.paragrapherContainerLeftUpload"
+              @click="uploadFile"
+            >
               <input
-                ref="inputFile" type="file" name="inputFile" :class=" $style.inputFile " accept=".docx"
-                @input=" handleUploadFile "
+                ref="inputFile"
+                type="file"
+                name="inputFile"
+                :class="$style.inputFile"
+                accept=".docx"
               >
               <Icon icon="icons8:upload-2" style="color: #5f6368" />
-              <span :class=" $style.paragrapherContainerLeftUploadText ">Upload Doc</span>
+              <span :class="$style.paragrapherContainerLeftUploadText">Upload Doc</span>
             </div>
-            <div v-else :class=" $style.paragrapherContainerLeftUpload ">
-              <span :class=" $style.paragrapherContainerLeftCountWords ">{{ countWords(textInput) }} words</span>
+            <div v-else :class="$style.paragrapherContainerLeftUpload">
+              <span :class="$style.paragrapherContainerLeftCountWords">{{ countWords(textInput) }} words</span>
             </div>
-            <button type="button" :class=" $style.paragrapherContainerLeftButtonSubmit " @click="fetchAnswer">
+            <button
+              type="button"
+              :class="$style.paragrapherContainerLeftButtonSubmit"
+              @click="fetchAnswer"
+            >
               Paraphrase
             </button>
           </div>
         </div>
-        <div :draggable=" false " :class=" $style.paragrapherContainerCenter " @mousedown=" handleDrag ">
+        <div
+          :draggable="false"
+          :class="$style.paragrapherContainerCenter"
+          @mousedown="handleDrag"
+        >
           <div />
         </div>
-        <div ref="outputArea" :class=" $style.paragrapherContainerRight ">
-          <span :class=" $style.paragrapherContainerTextarea ">{{ answer }}</span>
+        <div ref="outputArea" :class="$style.paragrapherContainerRight">
+          <div
+            :class="$style.paragrapherContainerTextarea"
+            contenteditable
+            @mouseup="handleDisplayPopup"
+            @blur="handleBlur"
+          >
+            {{ answer }}
+            Chú mèo có bộ long màu vàng vất rất dễ thương
+          </div>
         </div>
       </div>
     </div>
-    <div :class=" $style.directionMenuContainer ">
-      <div v-for="(item, index) in menuItems" :key=" index " :class=" $style.directionMenuItem ">
+    <div :class="$style.directionMenuContainer">
+      <div
+        v-for="(item, index) in menuItems"
+        :key="index"
+        :class="$style.directionMenuItem"
+      >
         <img
-          :class=" $style.directionMenuItemImg " :src=" item.srcDisplay ? item.srcDisplay : item.src "
-          @mouseover="hover(item, true)" @mouseleave="hover(item, false)"
+          :class="$style.directionMenuItemImg"
+          :src="item.srcDisplay ? item.srcDisplay : item.src"
+          @mouseover="hover(item, true)"
+          @mouseleave="hover(item, false)"
         >
-        <span :class=" [item.hoverSrc ? '' : $style.noHoverSrc] ">{{ item.name }}</span>
-        <div v-if="item.isPremium" :class=" $style.directionMenuItemIconPremium ">
+        <span :class="[item.hoverSrc ? '' : $style.noHoverSrc]">{{
+          item.name
+        }}</span>
+        <div v-if="item.isPremium" :class="$style.directionMenuItemIconPremium">
           <img src="@/assets/icons/diamond-svgrepo-com.svg" alt="Premium">
         </div>
-        <div v-if="item.isPremium" :class=" $style.tooltipPremium " />
+        <div v-if="item.isPremium" :class="$style.tooltipPremium" />
+      </div>
+    </div>
+    <div
+      v-if="display"
+      ref="popUp"
+      :style="{
+        background: '#f2f2f2',
+        boxShadow: '0 0 1px rgba(0, 0, 0, 0.1)',
+        padding: ' 4px 10px',
+        borderRadius: '6px',
+        position: 'fixed',
+        top: `${position.y + 4}px`,
+        left: `${position.x}px`,
+        // pointerEvents: 'none',
+        zIndex: '1000'
+      }"
+      :class="$style.popUpParaphrase"
+    >
+      <span :class="$style.textParaphrase">
+        {{ paraphraseText }}
+      </span>
+      <div :class="$style.groupButton">
+        <button :class="$style.groupButtonReject">
+          Reject
+        </button>
+        <button :class="$style.groupButtonApprove">
+          Approve
+        </button>
       </div>
     </div>
   </div>
@@ -295,7 +394,11 @@ function clearText() {
   width: 100%;
   color: #505050;
   position: relative;
+  height: 100%;
+}
 
+.paragrapherForm {
+  height: 70%;
 }
 
 .paragrapherHeader {
@@ -352,7 +455,7 @@ function clearText() {
   position: relative;
 
   &::after {
-    content: '';
+    content: "";
     display: block;
     position: absolute;
     width: 100%;
@@ -369,6 +472,7 @@ function clearText() {
   background: #fff;
   min-height: 400px;
   box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 20px 0px;
+  height: 100%;
 }
 
 .paragrapherContainerTextarea {
@@ -493,7 +597,6 @@ function clearText() {
 
 .directionMenuItem:hover {
   cursor: pointer;
-
 }
 
 .directionMenuItem span {
@@ -513,16 +616,51 @@ function clearText() {
   position: absolute;
   right: 12%;
   top: 30%;
-
 }
 
 .directionMenuItemIconPremium img {
   width: 0.5rem;
   height: 0.5rem;
-
 }
 
 .noHoverSrc {
-  color: #C5C6C7;
+  color: #c5c6c7;
+}
+.popUpParaphrase {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.groupButton {
+  display: flex;
+  gap: 20px;
+}
+.groupButtonReject {
+  padding: 5px 25px 6px;
+  font-size: 14px;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 25px;
+  text-transform: capitalize;
+  position: relative;
+  flex: 1;
+  cursor: pointer;
+  min-height: 20px;
+  background-color: #499557;
+  border: none;
+}
+.groupButtonApprove {
+  padding: 5px 25px 6px;
+  font-size: 14px;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 25px;
+  text-transform: capitalize;
+  position: relative;
+  flex: 1;
+  cursor: pointer;
+  min-height: 20px;
+  background-color: #499557;
+  border: none;
 }
 </style>

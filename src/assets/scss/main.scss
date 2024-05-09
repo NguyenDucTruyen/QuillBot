@@ -6,15 +6,24 @@ body {
 }
 
 * {
-  font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", sans-serif;
   box-sizing: border-box;
 }
 
-a,p,h1,h2,h3,h4,h5,h6,ul,li,button {
+a,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+ul,
+li,
+button {
   margin: 0;
   padding: 0;
- color: var(--color-gray-darker);
-
+  color: var(--color-gray-darker);
 }
 
 button {
