@@ -98,8 +98,8 @@ const inputFile = ref()
 const textInput = ref('')
 const answer = ref('')
 const paraphraseText = ref('')
-
-const popUp  = ref()
+const approveable = ref(false)
+const popUp = ref()
 const menuItems = reactive([
   {
     name: 'History',
@@ -202,39 +202,66 @@ function clearText() {
 }
 const position = ref({ x: 0, y: 0 })
 const display = ref(false)
-function handleDisplayPopup() {
+async function handleDisplayPopup() {
   const selection = window.getSelection()
-  if (selection?.toString().length === 0)
+  if (selection?.toString().length === 0 || selection?.toString().length === 0)
     return
   display.value = true
+  const contentParaphrase = selection?.toString()
+  if (!!contentParaphrase && contentParaphrase?.length > 0) {
+    try {
+      approveable.value = false
+      paraphraseText.value = 'Loading...'
+      paraphraseText.value = await gemini.getParaphraseText(
+        answer.value,
+        contentParaphrase,
+      )
+      approveable.value = true
+    }
+    catch (error) {
+      paraphraseText.value = 'Error loading paraphrase text'
+    }
+  }
 }
 function handleBlur() {
+  if (window.getSelection)
+    window.getSelection()?.removeAllRanges()
   display.value = false
   paraphraseText.value = ''
 }
 onMounted(() => {
   document.addEventListener('selectionchange', async () => {
     const selection = window.getSelection()
-
     if (!selection?.rangeCount || selection.toString().length === 0) {
       display.value = false
-      paraphraseText.value = ''
       return
     }
-    // console.log(popUp.value)
-
-    // const contentParaphrase = selection.toString()
-    // paraphraseText.value = await gemini.getParaphraseText(answer.value, contentParaphrase)
-    paraphraseText.value = 'Thay doi o day'
-    // console.log(paraphraseText.value)
 
     const range = selection.getRangeAt(0)
     position.value = {
       x: range.getBoundingClientRect().left,
       y: range.getBoundingClientRect().bottom,
     }
+    // range?.deleteContents()
+    // const textNode = document.createTextNode(paraphraseText.value)
+    // range?.insertNode(textNode)
+    // display.value = false
   })
+  // document.addEventListener('click', (e) => {
+  //   if (!popUp.value.contains(e.target) && !outputArea.value.contains(e.target))
+  //   console.log('click')
+  //     handleBlur()
+  // })
 })
+
+function approveParaphraseContent() {
+  const selection = window.getSelection()
+  const range = selection?.getRangeAt(0)
+  range?.deleteContents()
+  const textNode = document.createTextNode(paraphraseText.value)
+  range?.insertNode(textNode)
+  display.value = false
+}
 </script>
 
 <template>
@@ -312,7 +339,7 @@ onMounted(() => {
               :class="$style.paragrapherContainerLeftButtonSubmit"
               @click="fetchAnswer"
             >
-              Paraphrase
+              {{ isLoading ? "Loading..." : "Paraphrase" }}
             </button>
           </div>
         </div>
@@ -328,10 +355,8 @@ onMounted(() => {
             :class="$style.paragrapherContainerTextarea"
             contenteditable
             @mouseup="handleDisplayPopup"
-            @blur="handleBlur"
           >
             {{ answer }}
-            Chú mèo có bộ long màu vàng vất rất dễ thương
           </div>
         </div>
       </div>
@@ -358,29 +383,27 @@ onMounted(() => {
       </div>
     </div>
     <div
-      v-if="display"
+      v-show="display"
       ref="popUp"
       :style="{
-        background: '#f2f2f2',
-        boxShadow: '0 0 1px rgba(0, 0, 0, 0.1)',
-        padding: ' 4px 10px',
-        borderRadius: '6px',
-        position: 'fixed',
         top: `${position.y + 4}px`,
         left: `${position.x}px`,
-        // pointerEvents: 'none',
-        zIndex: '1000'
       }"
       :class="$style.popUpParaphrase"
+      @click.stop
     >
       <span :class="$style.textParaphrase">
         {{ paraphraseText }}
       </span>
       <div :class="$style.groupButton">
-        <button :class="$style.groupButtonReject">
+        <button :class="$style.groupButtonReject" @click="handleBlur">
           Reject
         </button>
-        <button :class="$style.groupButtonApprove">
+        <button
+          v-if="approveable"
+          :class="$style.groupButtonApprove"
+          @click.stop="approveParaphraseContent"
+        >
           Approve
         </button>
       </div>
@@ -630,6 +653,19 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: center;
+  background: #f1f1f1;
+  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 6px;
+  position: fixed;
+  max-width: 300px;
+}
+.textParaphrase {
+  font-size: 14px;
+  line-height: 20px;
+  color: #505050;
+  font-weight: 400;
 }
 .groupButton {
   display: flex;
@@ -646,7 +682,7 @@ onMounted(() => {
   flex: 1;
   cursor: pointer;
   min-height: 20px;
-  background-color: #499557;
+  background-color: #c6610ef0;
   border: none;
 }
 .groupButtonApprove {
