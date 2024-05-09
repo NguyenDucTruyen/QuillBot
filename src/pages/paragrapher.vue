@@ -88,18 +88,8 @@ const listModes = [
     languages: ['en'],
   },
 ]
-const currentMode = ref('standard')
-const isLoading = ref(false)
 
-const inputArea = ref()
-const outputArea = ref()
-const container = ref()
-const inputFile = ref()
-const textInput = ref('')
-const answer = ref('')
-const paraphraseText = ref('')
-const approveable = ref(false)
-const popUp = ref()
+
 const menuItems = reactive([
   {
     name: 'History',
@@ -152,6 +142,18 @@ const menuItems = reactive([
     isPremium: false,
   },
 ])
+const currentMode = ref('standard')
+const isLoading = ref(false)
+
+const inputArea = ref()
+const outputArea = ref()
+const container = ref()
+const inputFile = ref()
+const textInput = ref('')
+const answer = ref('')
+const paraphraseText = ref('')
+const approveable = ref(false)
+const popUp = ref()
 
 async function fetchAnswer() {
   answer.value = ''
@@ -242,16 +244,7 @@ onMounted(() => {
       x: range.getBoundingClientRect().left,
       y: range.getBoundingClientRect().bottom,
     }
-    // range?.deleteContents()
-    // const textNode = document.createTextNode(paraphraseText.value)
-    // range?.insertNode(textNode)
-    // display.value = false
   })
-  // document.addEventListener('click', (e) => {
-  //   if (!popUp.value.contains(e.target) && !outputArea.value.contains(e.target))
-  //   console.log('click')
-  //     handleBlur()
-  // })
 })
 
 function approveParaphraseContent() {
@@ -396,7 +389,11 @@ function approveParaphraseContent() {
         {{ paraphraseText }}
       </span>
       <div :class="$style.groupButton">
-        <button :class="$style.groupButtonReject" @click="handleBlur">
+        <button 
+          v-if="approveable"
+          :class="$style.groupButtonReject" 
+          @click="handleBlur"
+        >
           Reject
         </button>
         <button

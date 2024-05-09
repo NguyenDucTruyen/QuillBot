@@ -60,10 +60,12 @@ const createChat = {
           },
         ],
       });
-
-      const result = await chat.sendMessage(fullContent);
-      const response = result.response;
-      return response.text();
+      if(fullContent.length>0){
+        const result = await chat.sendMessage(fullContent);
+        const response = result.response;
+        return response.text();
+      }
+      return "Có gì đâu mà bắt paraphrase 😔";
     } catch (error) {
       return "";
     }
