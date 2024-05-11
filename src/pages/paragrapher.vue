@@ -10,6 +10,12 @@ interface MenuItem {
   hoverSrc: string
   isPremium: boolean
 }
+interface ItemParaphraseText {
+  id: number
+  content: string
+}
+type popOverStatus = 'initial' | 'tooltip' | 'popOver'
+
 const languageList = [
   {
     id: 1,
@@ -89,7 +95,6 @@ const listModes = [
   },
 ]
 
-
 const menuItems = reactive([
   {
     name: 'History',
@@ -150,10 +155,22 @@ const outputArea = ref()
 const container = ref()
 const inputFile = ref()
 const textInput = ref('')
-const answer = ref('')
-const paraphraseText = ref('')
-const approveable = ref(false)
-const popUp = ref()
+const answer = ref('Chú mèo có bộ long màu vàng vất rất dễ thương')
+const paraphraseText = ref({
+  current: {} as ItemParaphraseText,
+  history: [] as ItemParaphraseText[],
+})
+
+const outPutText = ref()
+const status = ref<popOverStatus>('initial')
+const tooltip = ref()
+const popOver = ref()
+const mousePos = ref({
+  x: 0,
+  y: 0,
+})
+let selection: Selection | null = null
+const isRefreshing = ref(false)
 
 async function fetchAnswer() {
   answer.value = ''
@@ -178,9 +195,6 @@ function hover(item: MenuItem, isHovering: boolean) {
 function countWords(text: string): number {
   return text.split(' ').filter(word => word !== '').length
 }
-function uploadFile() {
-  inputFile.value.click()
-}
 function handleCurrentLanguage(code: string) {
   currentLanguage.value = code
   currentMode.value = 'standard'
@@ -202,59 +216,132 @@ function handleDrag() {
 function clearText() {
   textInput.value = ''
 }
-const position = ref({ x: 0, y: 0 })
-const display = ref(false)
-async function handleDisplayPopup() {
-  const selection = window.getSelection()
-  if (selection?.toString().length === 0 || selection?.toString().length === 0)
+function reSelect() {
+  if (!selection?.anchorNode || !selection?.focusNode)
     return
-  display.value = true
+  const range = document.createRange()
+  range.setStart(selection?.anchorNode, selection?.anchorOffset)
+  range.setEnd(selection?.focusNode, selection?.focusOffset)
+  selection.removeAllRanges()
+  window.getSelection()?.addRange(range)
+}
+function isMouseInElement(e: HTMLElement) {
+  if (!e?.getBoundingClientRect())
+    return
+  const eBounding = e.getBoundingClientRect()
+  return mousePos.value.x >= eBounding.left && mousePos.value.x <= eBounding.right && mousePos.value.y >= eBounding.top && mousePos.value.y <= eBounding.bottom
+}
+const position = ref({ x: 0, y: 0 })
+function resetStatus() {
+  if (window.getSelection)
+    window.getSelection()?.removeAllRanges()
+  status.value = 'initial'
+  paraphraseText.value = {
+    current: {} as ItemParaphraseText,
+    history: [] as ItemParaphraseText[],
+  }
+}
+function handleDisplayTooltip() {
+  selection = window.getSelection()
+  if (!selection?.rangeCount || selection?.toString()?.length === 0) {
+    resetStatus()
+    return
+  }
+  status.value = 'tooltip'
+}
+function refreshParaphraseText() {
+  // paraphraseText = await gemini.getParaphraseText(
+  //   answer.value,
+  //   contentParaphrase,
+  // )
+  isRefreshing.value = true
+  setTimeout(() => {
+    const newParaphraseText = `Laser pointer ${paraphraseText.value.history.length + 1}`
+    paraphraseText.value.current = {
+      id: paraphraseText.value.history.length + 1,
+      content: newParaphraseText,
+    }
+    paraphraseText.value.history.push(paraphraseText.value.current as ItemParaphraseText)
+    isRefreshing.value = false
+  }, 1000)
+}
+function getThePrevious() {
+  const currentID = paraphraseText.value.current.id
+  if (currentID > 1)
+    paraphraseText.value.current = paraphraseText.value.history[currentID - 2]
+}
+function getTheFollowing() {
+  const currentID = paraphraseText.value.current.id
+  const lengHistory = paraphraseText.value.history.length
+  if (currentID < lengHistory)
+    paraphraseText.value.current = paraphraseText.value.history[currentID]
+}
+async function handleDisplayPopOver() {
+  if (!selection?.anchorNode || !selection?.focusNode)
+    return
+  status.value = 'popOver'
   const contentParaphrase = selection?.toString()
   if (!!contentParaphrase && contentParaphrase?.length > 0) {
     try {
-      approveable.value = false
-      paraphraseText.value = 'Loading...'
-      paraphraseText.value = await gemini.getParaphraseText(
-        answer.value,
-        contentParaphrase,
-      )
-      approveable.value = true
+      refreshParaphraseText()
     }
     catch (error) {
-      paraphraseText.value = 'Error loading paraphrase text'
+      // resetStatus()
     }
   }
 }
 function handleBlur() {
-  if (window.getSelection)
-    window.getSelection()?.removeAllRanges()
-  display.value = false
-  paraphraseText.value = ''
+  if (isMouseInElement(outPutText.value) || isMouseInElement(tooltip.value) || isMouseInElement(popOver.value))
+    reSelect()
+  else
+    status.value = 'initial'
 }
 onMounted(() => {
   document.addEventListener('selectionchange', async () => {
     const selection = window.getSelection()
-    if (!selection?.rangeCount || selection.toString().length === 0) {
-      display.value = false
+    if (!selection?.rangeCount || selection.toString().length === 0)
       return
-    }
-
     const range = selection.getRangeAt(0)
     position.value = {
       x: range.getBoundingClientRect().left,
       y: range.getBoundingClientRect().bottom,
     }
   })
-})
 
+  document.addEventListener('mousemove', (e) => {
+    mousePos.value.x = e.clientX
+    mousePos.value.y = e.clientY
+  })
+})
+async function copyTextParaphrase() {
+  navigator.clipboard.writeText(paraphraseText.value.current.content)
+  resetStatus()
+}
+function pasteText() {
+  navigator.clipboard
+    .readText()
+    .then(clipText => (textInput.value = clipText))
+}
 function approveParaphraseContent() {
-  const selection = window.getSelection()
+  selection = window.getSelection()
   const range = selection?.getRangeAt(0)
   range?.deleteContents()
-  const textNode = document.createTextNode(paraphraseText.value)
+  const textNode = document.createTextNode(paraphraseText.value.current.content)
   range?.insertNode(textNode)
-  display.value = false
+  status.value = 'initial'
 }
+const posPopOver = computed(() => {
+  const pos = { ...position.value }
+  const minY = 0
+  const maxY = window.innerHeight - 290
+  const minX = 0
+  const maxX = window.innerWidth - 490
+
+  pos.y = Math.max(minY, Math.min(pos.y, maxY))
+  pos.x = Math.max(minX, Math.min(pos.x, maxX))
+
+  return { top: `${pos.y}px`, left: `${pos.x}px` }
+})
 </script>
 
 <template>
@@ -312,7 +399,7 @@ function approveParaphraseContent() {
             <div
               v-if="!textInput.trim()"
               :class="$style.paragrapherContainerLeftUpload"
-              @click="uploadFile"
+              @click="pasteText"
             >
               <input
                 ref="inputFile"
@@ -345,9 +432,12 @@ function approveParaphraseContent() {
         </div>
         <div ref="outputArea" :class="$style.paragrapherContainerRight">
           <div
+            ref="outPutText"
             :class="$style.paragrapherContainerTextarea"
             contenteditable
-            @mouseup="handleDisplayPopup"
+            @mouseup="handleDisplayTooltip"
+            @mousedown="resetStatus"
+            @blur="handleBlur"
           >
             {{ answer }}
           </div>
@@ -375,33 +465,63 @@ function approveParaphraseContent() {
         <div v-if="item.isPremium" :class="$style.tooltipPremium" />
       </div>
     </div>
+
     <div
-      v-show="display"
-      ref="popUp"
+      v-if="status === 'tooltip'"
+      ref="tooltip"
       :style="{
+        position: 'fixed',
         top: `${position.y + 4}px`,
         left: `${position.x}px`,
+        cursor: 'pointer',
       }"
-      :class="$style.popUpParaphrase"
+      :class="[$style.paraphrasePopUp, $style.paraphraseTooltip]"
+      @click="handleDisplayPopOver"
+    >
+      <img :class="$style.paraphrasePopOverIconStar" src="@/assets/icons/star.svg">
+    </div>
+    <div
+      v-else-if="status === 'popOver'"
+      ref="popOver"
+      :style="posPopOver"
+      :class="[$style.paraphrasePopUp, $style.paraphrasePopOver]"
       @click.stop
     >
-      <span :class="$style.textParaphrase">
-        {{ paraphraseText }}
-      </span>
+      <div :class="$style.paraphrasePopOverHeader">
+        <img :class="$style.paraphrasePopOverIconStar" src="@/assets/icons/star.svg">
+        <span>S-Group Paraphrase</span>
+        <img :class="$style.paraphrasePopOverIconClose" src="@/assets/icons/close.svg" @click="resetStatus">
+      </div>
+
+      <div :class="$style.paraphrasePopOverContainer">
+        <div :class="$style.paraphrasePopOverContainerHeader">
+          <div :class="$style.paraphrasePopOverContainerHeaderRefresh" @click="refreshParaphraseText">
+            <img :class="[$style.paraphrasePopOverIconRefresh, isRefreshing === true && $style.loading]" src="@/assets/icons/refresh.svg">
+            <span>Refresh</span>
+          </div>
+          <div v-if="paraphraseText.history.length > 0" :class="$style.paraphrasePopOverContainerHeaderHistory">
+            <img src="@/assets/icons/arrow-left.svg" alt="" @click="getThePrevious">
+            <span>{{ paraphraseText.current.id }}/{{ paraphraseText.history.length }}</span>
+            <img src="@/assets/icons/arrow-right.svg" alt="" @click="getTheFollowing">
+          </div>
+        </div>
+        <div :class="$style.paraphrasePopOverContainerContent">
+          {{ paraphraseText.current.content }}
+        </div>
+      </div>
       <div :class="$style.groupButton">
-        <button 
-          v-if="approveable"
-          :class="$style.groupButtonReject" 
-          @click="handleBlur"
+        <button
+          :class="$style.groupButtonCopy"
+          @click="copyTextParaphrase"
         >
-          Reject
+          Copy
         </button>
         <button
-          v-if="approveable"
           :class="$style.groupButtonApprove"
           @click.stop="approveParaphraseContent"
         >
-          Approve
+          <img src="@/assets/icons/replace.svg" alt="">
+          <span>Apply</span>
         </button>
       </div>
     </div>
@@ -646,18 +766,95 @@ function approveParaphraseContent() {
 .noHoverSrc {
   color: #c5c6c7;
 }
-.popUpParaphrase {
+.paraphrasePopUp {
+  position: fixed;
+}
+.paraphraseTooltip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 4px;
+  background-color: #fff;
+  box-shadow: 0 0.375rem 0.75rem 0 rgba(0, 0, 0, 0.5);
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}
+.paraphrasePopOver {
+  padding: 12px 12px 8px 12px;
+  border-radius: 12px;
+  width: 480px;
+  height: 280px;
+  background-color: #fff;
+  box-shadow: 0 0.375rem 0.75rem 0 rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column ;
+  gap:16px;
+}
+
+.paraphrasePopOverHeader {
+  display: flex;
+  align-items: center;
+}
+.paraphrasePopOverHeader span {
+  flex:1;
+  font-size: 16px;
+  color: #555555;
+}
+.paraphrasePopOverContainer {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  align-items: center;
-  background: #f1f1f1;
-  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.3);
-  padding: 12px;
-  border-radius: 6px;
-  position: fixed;
-  max-width: 300px;
+  padding: 0 16px;
+  gap: 4px;
 }
+.paraphrasePopOverContainerHeader {
+  display: flex;
+  justify-content: space-between;
+  color: #A9A9A9;
+  font-size: 12px;
+  line-height: 17px;
+}
+.paraphrasePopOverContainerHeaderRefresh {
+  display: flex;
+  align-items:center;
+  cursor: pointer;
+}
+.paraphrasePopOverIconRefresh {
+  width: 18px;
+  height: 18px;
+}
+.paraphrasePopOverContainerHeaderHistory {
+  display: flex;
+
+  img {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+}
+
+.paraphrasePopOverContainerContent {
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #f8f8f8;
+  font-size: 16px;
+  line-height: 22px;
+  color:#555555;
+  height: 120px;
+  overflow: auto;
+}
+.paraphrasePopOverIconStar {
+  width: 32px;
+  height: 32px;
+}
+.paraphrasePopOverIconClose {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
 .textParaphrase {
   font-size: 14px;
   line-height: 20px;
@@ -666,34 +863,49 @@ function approveParaphraseContent() {
 }
 .groupButton {
   display: flex;
-  gap: 20px;
+  gap: 8px;
+  padding: 16px;
+  padding-top: 0;
+  justify-content: flex-end;
+  // height: 52px;
 }
-.groupButtonReject {
-  padding: 5px 25px 6px;
+.groupButtonCopy {
+  padding: 6px 16px;
+  border: 1px solid #DADCE0;
+  border-radius: 48px;
   font-size: 14px;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 25px;
-  text-transform: capitalize;
-  position: relative;
-  flex: 1;
-  cursor: pointer;
-  min-height: 20px;
-  background-color: #c6610ef0;
-  border: none;
+  line-height: 20px;
+  background-color: #FFFFFF;
+  color: #555555;
 }
 .groupButtonApprove {
-  padding: 5px 25px 6px;
-  font-size: 14px;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 25px;
-  text-transform: capitalize;
-  position: relative;
-  flex: 1;
-  cursor: pointer;
-  min-height: 20px;
-  background-color: #499557;
+  padding: 8px 12px;
+  height: 36px;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  background: #4643DD;
   border: none;
+  img {
+    width: 24px;
+    height: 24px;
+  }
+  span {
+    display: flex;
+    padding: 0 4px;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 20px;
+    color: #fff;
+    letter-spacing: 0.8px;
+  }
+}
+.loading {
+  animation: loading 1.5s linear  infinite;
+}
+@keyframes loading {
+  0%{ -webkit-transform: rotate(0deg); transform: rotate(360deg);}
+	100%{ -webkit-transform: rotate(360deg); transform: rotate(0deg);}
 }
 </style>
