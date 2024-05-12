@@ -24,8 +24,8 @@ const languageList = [
   },
   {
     id: 2,
-    name: 'Spanish',
-    code: 'es',
+    name: 'Vietnamese',
+    code: 'vi',
   },
   {
     id: 3,
@@ -55,25 +55,25 @@ const listModes = [
     id: 2,
     name: 'Fluency',
     code: 'fluency',
-    languages: ['en'],
+    languages: ['en', 'vi'],
   },
   {
     id: 3,
     name: 'Natural',
     code: 'natural',
-    languages: ['en'],
+    languages: ['en', 'vi'],
   },
   {
     id: 4,
     name: 'Formal',
     code: 'formal',
-    languages: ['en'],
+    languages: ['en', 'vi'],
   },
   {
     id: 5,
     name: 'Academic',
     code: 'academic',
-    languages: ['en'],
+    languages: ['en', 'vi'],
   },
   {
     id: 6,
@@ -85,13 +85,13 @@ const listModes = [
     id: 7,
     name: 'Creative',
     code: 'creative',
-    languages: ['en'],
+    languages: ['en', 'vi'],
   },
   {
     id: 8,
     name: 'Expand',
     code: 'expand',
-    languages: ['en'],
+    languages: ['en', 'vi'],
   },
 ]
 
@@ -149,13 +149,13 @@ const menuItems = reactive([
 ])
 const currentMode = ref('standard')
 const isLoading = ref(false)
-
 const inputArea = ref()
 const outputArea = ref()
 const container = ref()
 const inputFile = ref()
 const textInput = ref('')
-const answer = ref('Chú mèo có bộ long màu vàng vất rất dễ thương')
+const contentParaphrase = ref('')
+const answer = ref('Cats are adorable animals.')
 const paraphraseText = ref({
   current: {} as ItemParaphraseText,
   history: [] as ItemParaphraseText[],
@@ -176,8 +176,11 @@ async function fetchAnswer() {
   answer.value = ''
   try {
     isLoading.value = true
+    const language = languageList.find(e => e.code === currentLanguage.value)?.name || 'English'
     answer.value = await gemini.getParaphraseFullContent(
       textInput.value.trim(),
+      language,
+      currentMode.value,
     )
   }
   catch (error) {
@@ -233,8 +236,8 @@ function isMouseInElement(e: HTMLElement) {
 }
 const position = ref({ x: 0, y: 0 })
 function resetStatus() {
-  if (window.getSelection)
-    window.getSelection()?.removeAllRanges()
+  // if (window.getSelection)
+    // window.getSelection()?.removeAllRanges()
   status.value = 'initial'
   paraphraseText.value = {
     current: {} as ItemParaphraseText,
@@ -243,27 +246,32 @@ function resetStatus() {
 }
 function handleDisplayTooltip() {
   selection = window.getSelection()
-  if (!selection?.rangeCount || selection?.toString()?.length === 0) {
+  if (!selection?.rangeCount || selection?.toString()?.trim().length === 0) {
     resetStatus()
     return
   }
   status.value = 'tooltip'
 }
-function refreshParaphraseText() {
-  // paraphraseText = await gemini.getParaphraseText(
-  //   answer.value,
-  //   contentParaphrase,
-  // )
+async function refreshParaphraseText() {
   isRefreshing.value = true
-  setTimeout(() => {
-    const newParaphraseText = `Laser pointer ${paraphraseText.value.history.length + 1}`
+  const language = languageList.find(e => e.code === currentLanguage.value)?.name || 'English'
+  try {
+    const newParaphraseText = await gemini.getParaphraseText(
+      answer.value,
+      contentParaphrase.value,
+      language,
+    )
     paraphraseText.value.current = {
       id: paraphraseText.value.history.length + 1,
       content: newParaphraseText,
     }
     paraphraseText.value.history.push(paraphraseText.value.current as ItemParaphraseText)
     isRefreshing.value = false
-  }, 1000)
+  }
+  catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Has some error')
+  }
 }
 function getThePrevious() {
   const currentID = paraphraseText.value.current.id
@@ -280,8 +288,8 @@ async function handleDisplayPopOver() {
   if (!selection?.anchorNode || !selection?.focusNode)
     return
   status.value = 'popOver'
-  const contentParaphrase = selection?.toString()
-  if (!!contentParaphrase && contentParaphrase?.length > 0) {
+  contentParaphrase.value = selection?.toString()
+  if (!!contentParaphrase.value && contentParaphrase.value?.length > 0) {
     try {
       refreshParaphraseText()
     }
@@ -415,11 +423,19 @@ const posPopOver = computed(() => {
               <span :class="$style.paragrapherContainerLeftCountWords">{{ countWords(textInput) }} words</span>
             </div>
             <button
+              v-if="!isLoading"
               type="button"
               :class="$style.paragrapherContainerLeftButtonSubmit"
               @click="fetchAnswer"
             >
-              {{ isLoading ? "Loading..." : "Paraphrase" }}
+              Paraphrase
+            </button>
+            <button
+              v-else
+              type="button"
+              :class="$style.paragrapherContainerLeftButtonSubmit"
+            >
+              <img src="@/assets/icons/loading.svg" alt="">
             </button>
           </div>
         </div>
@@ -681,6 +697,9 @@ const posPopOver = computed(() => {
 }
 
 .paragrapherContainerLeftButtonSubmit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 5px 25px 6px;
   font-size: 17px;
   color: #fff;
@@ -689,6 +708,7 @@ const posPopOver = computed(() => {
   text-transform: capitalize;
   position: relative;
   width: 140px;
+  min-width: 140px;
   min-height: 40px;
   background-color: #499557;
   border: none;
