@@ -155,7 +155,7 @@ const container = ref()
 const inputFile = ref()
 const textInput = ref('')
 const contentParaphrase = ref('')
-const answer = ref('Cats are adorable animals.')
+const answer = ref('')
 const paraphraseText = ref({
   current: {} as ItemParaphraseText,
   history: [] as ItemParaphraseText[],
