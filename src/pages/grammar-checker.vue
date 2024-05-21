@@ -2,13 +2,14 @@
 let mouseDownedInput: any | null = null
 let lastSelectionStart: number = 0
 let lastSelectionEnd: number = 0
+const boundingBox = ref<HTMLElement | null>(null)
 onMounted(() => {
   document.addEventListener('mousedown', (event) => {
     if (event.target?.tagName === 'INPUT' || event.target?.tagName === 'TEXTAREA')
       mouseDownedInput = event.target as HTMLElement
   })
 
-  document.addEventListener('mouseup', (e) => {
+  document.addEventListener('mouseup', () => {
     const sel = window.getSelection()
     const selectedText = sel?.toString().trim()
     let boundingClientRect
@@ -21,7 +22,8 @@ onMounted(() => {
         lastSelectionStart = start
         lastSelectionEnd = end
         boundingClientRect = getSelectedTextBounding(mouseDownedInput, start, end)
-        console.log(boundingClientRect)
+        boundingBox.value!.style.top = `${boundingClientRect.top - 52}px`
+        boundingBox.value!.style.left = `${boundingClientRect.right - 210}px`
       }
       else {
         if (r)
@@ -31,15 +33,7 @@ onMounted(() => {
     mouseDownedInput = null
   })
 
-  document.addEventListener('click', (_) => {
-    if (lastSelectionStart !== null && lastSelectionEnd !== null) {
-      const input = document.getElementById('inputTextarea')
-      if (input)
-        input.setSelectionRange(lastSelectionStart, lastSelectionEnd)
-    }
-  })
-
-  function getSelectedTextBounding(input, start, end) {
+  function getSelectedTextBounding(input: HTMLTextAreaElement | HTMLInputElement, start: number, end: number) {
     const inputBoundRect = input.getBoundingClientRect()
     const div = document.createElement('div')
     div.innerHTML = input.value.replace(/\n/g, '<br />')
@@ -62,7 +56,7 @@ onMounted(() => {
     return textBounding
   }
 
-function getTextNodesIn(node: Node): Node[] {
+  function getTextNodesIn(node: Node): Node[] {
     const textNodes = []
     if (node.nodeType === 3) {
       textNodes.push(node)
@@ -75,39 +69,61 @@ function getTextNodesIn(node: Node): Node[] {
     return textNodes
   }
 
-  function setSelectionRange(el:HTMLElement, start:number, end) {
+  function setSelectionRange(el: HTMLElement, start: number, end: number) {
     const range = document.createRange()
     range.selectNodeContents(el)
     const textNodes = getTextNodesIn(el)
-    let foundStart = false; let charCount = 0; let endCharCount
-    for (const textNode of textNodes) {
-      endCharCount = charCount + textNode.length
-      if (!foundStart && start >= charCount && (start < endCharCount || (start === endCharCount && i < textNodes.length))) {
-        range.setStart(textNode, start - charCount)
-        foundStart = true
-      }
-      if (foundStart && end <= endCharCount) {
-        range.setEnd(textNode, end - charCount)
-        break
-      }
-      charCount = endCharCount
+    let foundStart = false; 
+    let charCount = 0; 
+    let endCharCount
+    for (let i = 0; i < textNodes.length; i++) {
+        const textNode = textNodes[i]
+        endCharCount = charCount + (textNode.textContent?.length ?? 0)
+        if (!foundStart && start >= charCount && (start < endCharCount || (start === endCharCount && i < textNodes.length))) {
+            range.setStart(textNode, start - charCount)
+            foundStart = true
+        }
+        if (foundStart && end <= endCharCount) {
+            range.setEnd(textNode, end - charCount)
+            break
+        }
+        charCount = endCharCount
     }
     const sel = window.getSelection()
-    sel.removeAllRanges()
-    sel.addRange(range)
+    sel?.removeAllRanges()
+    sel?.addRange(range)
     return range
   }
 })
 </script>
 
 <template>
-  <h1>Select Text in the Textarea</h1>
-  <textarea id="inputTextarea">This is some sample text. Select a part of this text to see the bounding box in the console.</textarea>
+  <div :class="$style.container">
+    <h1>Select Text in the Textarea</h1>
+    <textarea id="inputTextarea">This is some sample text. Select a part of this text to see the bounding box in the console.</textarea>
+    <div
+      ref="boundingBox"
+      :style="{
+        position: 'absolute',
+        width: '20px',
+        height: '20px',
+        background: 'red',
+        lineHeight: '20px',
+        top: '0',
+        left: '0',
+      }"
+    />
+  </div>
 </template>
 
 <style module lang="scss">
+.container {
+    position: relative;
+}
   textarea {
     width: 100%;
     height: 200px;
+    font-size: 16px;
+    line-height: 20px;
   }
 </style>

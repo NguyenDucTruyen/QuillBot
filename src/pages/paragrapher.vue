@@ -264,14 +264,14 @@ function handleDisplayTooltip() {
 }
 async function refreshParaphraseText() {
   isRefreshing.value = true
-  // const language = languageList.find(e => e.code === currentLanguage.value)?.name || 'English'
+  const language = languageList.find(e => e.code === currentLanguage.value)?.name || 'English'
   try {
-    // const newParaphraseText = await gemini.getParaphraseText(
-    //   answer.value,
-    //   contentParaphrase.value,
-    //   language,
-    // )
-    const newParaphraseText = 'Replace text over here, hehe'
+    const newParaphraseText = await gemini.getParaphraseText(
+      answer.value,
+      contentParaphrase.value,
+      language,
+    )
+    // const newParaphraseText = 'Replace text over here, hehe'
     paraphraseText.value.current = {
       id: paraphraseText.value.history.length + 1,
       content: newParaphraseText,
