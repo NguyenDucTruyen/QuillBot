@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 // import OpenAi from '@/api/generateAI.ts'
+import { computePosition, flip, inline, offset } from '@floating-ui/dom'
 import gemini from '@/api/generateParaphrase.ts'
 
 interface MenuItem {
@@ -155,12 +156,17 @@ const container = ref()
 const inputFile = ref()
 const textInput = ref('')
 const contentParaphrase = ref('')
-const answer = ref('')
+const answer = ref(`I'm a good writer, I love reading books and newspape.I'm a good writer, I love reading books and newspaper.I'm a good writer, I love reading books and newspaperr`)
 const paraphraseText = ref({
   current: {} as ItemParaphraseText,
   history: [] as ItemParaphraseText[],
 })
-
+const childRect = ref<Array<DOMRect>>([])
+const rect = ref(new DOMRect())
+const virtualElement = ref({
+  getBoundingClientRect: () => rect.value,
+  getClientRects: () => [childRect.value[childRect.value.length - 1]],
+})
 const outPutText = ref()
 const status = ref<popOverStatus>('initial')
 const tooltip = ref()
@@ -237,7 +243,7 @@ function isMouseInElement(e: HTMLElement) {
 const position = ref({ x: 0, y: 0 })
 function resetStatus() {
   // if (window.getSelection)
-    // window.getSelection()?.removeAllRanges()
+  // window.getSelection()?.removeAllRanges()
   status.value = 'initial'
   paraphraseText.value = {
     current: {} as ItemParaphraseText,
@@ -251,16 +257,18 @@ function handleDisplayTooltip() {
     return
   }
   status.value = 'tooltip'
+  nextTick(attachTooltip)
 }
 async function refreshParaphraseText() {
   isRefreshing.value = true
-  const language = languageList.find(e => e.code === currentLanguage.value)?.name || 'English'
+  // const language = languageList.find(e => e.code === currentLanguage.value)?.name || 'English'
   try {
-    const newParaphraseText = await gemini.getParaphraseText(
-      answer.value,
-      contentParaphrase.value,
-      language,
-    )
+    // const newParaphraseText = await gemini.getParaphraseText(
+    //   answer.value,
+    //   contentParaphrase.value,
+    //   language,
+    // )
+    const newParaphraseText = 'Replace text over here, hehe'
     paraphraseText.value.current = {
       id: paraphraseText.value.history.length + 1,
       content: newParaphraseText,
@@ -287,9 +295,10 @@ function getTheFollowing() {
 async function handleDisplayPopOver() {
   if (!selection?.anchorNode || !selection?.focusNode)
     return
-  status.value = 'popOver'
   contentParaphrase.value = selection?.toString()
   if (!!contentParaphrase.value && contentParaphrase.value?.length > 0) {
+    status.value = 'popOver'
+    nextTick(attachPopover)
     try {
       refreshParaphraseText()
     }
@@ -309,10 +318,15 @@ onMounted(() => {
     const selection = window.getSelection()
     if (!selection?.rangeCount || selection.toString().length === 0)
       return
+
     const range = selection.getRangeAt(0)
+    // Array like
+    rect.value = range.getBoundingClientRect()
+    childRect.value = Array.from(range.getClientRects())
+
     position.value = {
-      x: range.getBoundingClientRect().left,
-      y: range.getBoundingClientRect().bottom,
+      x: rect.value.left,
+      y: rect.value.bottom,
     }
   })
 
@@ -338,18 +352,45 @@ function approveParaphraseContent() {
   range?.insertNode(textNode)
   status.value = 'initial'
 }
-const posPopOver = computed(() => {
-  const pos = { ...position.value }
-  const minY = 0
-  const maxY = window.innerHeight - 290
-  const minX = 0
-  const maxX = window.innerWidth - 490
 
-  pos.y = Math.max(minY, Math.min(pos.y, maxY))
-  pos.x = Math.max(minX, Math.min(pos.x, maxX))
-
-  return { top: `${pos.y}px`, left: `${pos.x}px` }
-})
+async function attachTooltip() {
+  if (tooltip.value) {
+    // virtualElement include getBoundingClientRect and getClientRects
+    const { x, y, strategy } = await computePosition(virtualElement.value, tooltip.value, {
+      strategy: 'absolute',
+      placement: 'right',
+      middleware: [
+        flip(),
+        offset({
+          mainAxis: 4
+        }),
+        inline()
+      ],
+    })
+    tooltip.value.style.top = `${y - 52}px`
+    tooltip.value.style.left = `${x - 210}px`
+    tooltip.value.style.position = `${strategy}`
+  }
+}
+async function attachPopover() {
+  if (popOver.value) {
+    const { x, y, strategy } = await computePosition(virtualElement.value, popOver.value, {
+      strategy: 'absolute',
+      placement: 'bottom',
+      middleware: [
+        flip(),
+        offset({
+          mainAxis: 10
+        })
+      ],
+    })
+    const maxX = window.innerWidth - 500
+    const posX = Math.min(x, maxX)
+    popOver.value.style.top = `${y - 52}px`
+    popOver.value.style.left = `${posX - 210}px`
+    popOver.value.style.position = `${strategy}`
+  }
+}
 </script>
 
 <template>
@@ -486,20 +527,16 @@ const posPopOver = computed(() => {
       v-if="status === 'tooltip'"
       ref="tooltip"
       :style="{
-        position: 'fixed',
-        top: `${position.y + 4}px`,
-        left: `${position.x}px`,
         cursor: 'pointer',
       }"
       :class="[$style.paraphrasePopUp, $style.paraphraseTooltip]"
       @click="handleDisplayPopOver"
     >
-      <img :class="$style.paraphrasePopOverIconStar" src="@/assets/icons/star.svg">
+      <img :class="$style.paraphrasePopOverIconStar" src="@/assets/images/sgr_logo_square.png">
     </div>
     <div
       v-else-if="status === 'popOver'"
       ref="popOver"
-      :style="posPopOver"
       :class="[$style.paraphrasePopUp, $style.paraphrasePopOver]"
       @click.stop
     >
