@@ -156,7 +156,7 @@ const container = ref()
 const inputFile = ref()
 const textInput = ref('')
 const contentParaphrase = ref('')
-const answer = ref(`I'm a good writer, I love reading books and newspape.I'm a good writer, I love reading books and newspaper.I'm a good writer, I love reading books and newspaperr`)
+const answer = ref('')
 const paraphraseText = ref({
   current: {} as ItemParaphraseText,
   history: [] as ItemParaphraseText[],
@@ -226,13 +226,16 @@ function clearText() {
   textInput.value = ''
 }
 function reSelect() {
-  if (!selection?.anchorNode || !selection?.focusNode)
+  if (!selection?.anchorNode || !selection.focusNode)
     return
+
+  console.log('reselect:', selection.toString())
   const range = document.createRange()
-  range.setStart(selection?.anchorNode, selection?.anchorOffset)
-  range.setEnd(selection?.focusNode, selection?.focusOffset)
+  range.setStart(selection?.anchorNode, selection?.anchorOffset || 0)
+  range.setEnd(selection?.focusNode, selection?.focusOffset || 0)
   selection.removeAllRanges()
-  window.getSelection()?.addRange(range)
+  selection.addRange(range)
+  console.log('after reselect:', selection.toString())
 }
 function isMouseInElement(e: HTMLElement) {
   if (!e?.getBoundingClientRect())
@@ -362,9 +365,9 @@ async function attachTooltip() {
       middleware: [
         flip(),
         offset({
-          mainAxis: 4
+          mainAxis: 4,
         }),
-        inline()
+        inline(),
       ],
     })
     tooltip.value.style.top = `${y - 52}px`
@@ -380,8 +383,8 @@ async function attachPopover() {
       middleware: [
         flip(),
         offset({
-          mainAxis: 10
-        })
+          mainAxis: 10,
+        }),
       ],
     })
     const maxX = window.innerWidth - 500
