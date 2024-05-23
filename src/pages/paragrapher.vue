@@ -235,7 +235,7 @@ function reSelect() {
   range.setEnd(selection?.focusNode, selection?.focusOffset || 0)
   selection.removeAllRanges()
   selection.addRange(range)
-  console.log('after reselect:', selection.toString())
+  console.log('after reselect:', range)
 }
 function isMouseInElement(e: HTMLElement) {
   if (!e?.getBoundingClientRect())
@@ -499,7 +499,8 @@ async function attachPopover() {
             @mousedown="resetStatus"
             @blur="handleBlur"
           >
-            {{ answer }}
+            <!-- {{ answer }} -->
+            123<b>456</b>
           </div>
         </div>
       </div>
