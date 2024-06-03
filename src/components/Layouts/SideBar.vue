@@ -1,91 +1,100 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { useRoute } from "vue-router";
+import { Icon } from '@iconify/vue'
+import { useRoute } from 'vue-router'
 
 defineProps<{
-  isExpand: boolean;
-}>();
+  isExpand: boolean
+}>()
 
-const route = useRoute();
+const route = useRoute()
 
 const menuList = [
   {
     id: 1,
-    icon: "https://assets.quillbot.com/images/theme/commonImages/paraphraser-new.svg",
-    color: "rgb(73, 149, 87)",
-    title: "Paraphraser",
-    path: "/paragrapher",
+    icon: 'https://assets.quillbot.com/images/theme/commonImages/paraphraser-new.svg',
+    color: 'rgb(73, 149, 87)',
+    title: 'Paraphraser',
+    path: '/paragrapher',
   },
   {
     id: 2,
-    icon: "https://assets.quillbot.com/images/theme/commonImages/grammar-checker-new.svg",
-    color: "rgb(239, 65, 76)",
-    title: "Grammar Checker",
-    path: "/grammar-checker",
+    icon: 'https://assets.quillbot.com/images/theme/commonImages/grammar-checker-new.svg',
+    color: 'rgb(239, 65, 76)',
+    title: 'Grammar Checker',
+    path: '/grammar-checker',
+  },
+  {
+    id: 8,
+    icon: 'https://assets.quillbot.com/images/theme/light/aiDetector/ai-detector-old.svg',
+    color: 'rgb(239, 65, 76)',
+    title: 'AI Detector',
+    path: '/ai-detector',
   },
   {
     id: 3,
-    icon: "https://assets.quillbot.com/images/theme/commonImages/plag-checker-new.svg",
-    color: "rgb(242, 124, 14)",
-    title: "Plagiarism Checker",
-    path: "/plagiarism-checker",
-  },
-  {
-    id: 4,
-    icon: "	https://assets.quillbot.com/images/theme/commonImages/co-writer-new.svg",
-    color: "rgb(49, 157, 255)",
-    title: "QuillBot Flow",
-    path: "/quilbot-flow",
+    icon: 'https://assets.quillbot.com/images/theme/commonImages/plag-checker-new.svg',
+    color: 'rgb(242, 124, 14)',
+    title: 'Plagiarism Checker',
+    path: '/plagiarism-checker',
   },
   {
     id: 5,
-    icon: "https://assets.quillbot.com/images/theme/commonImages/summarizer-new.svg",
-    color: "rgb(128, 81, 255)",
-    title: "Summerizer",
-    path: "/summerizer",
+    icon: 'https://assets.quillbot.com/images/theme/commonImages/summarizer-new.svg',
+    color: 'rgb(128, 81, 255)',
+    title: 'Summerizer',
+    path: '/summerizer',
+  },
+
+  {
+    id: 7,
+    icon: 'https://assets.quillbot.com/images/theme/light/translator/translator_icon.svg',
+    color: 'rgba(0, 0, 0, 0.87)',
+    title: 'Translator',
+    path: '/translator',
   },
   {
     id: 6,
-    icon: "https://assets.quillbot.com/images/theme/commonImages/citation-generator-logo.svg",
-    color: "rgb(0, 103, 197)",
-    title: "Citation Generator",
-    path: "/citation-generator",
+    icon: 'https://assets.quillbot.com/images/theme/commonImages/citation-generator-logo.svg',
+    color: 'rgb(0, 103, 197)',
+    title: 'Citation Generator',
+    path: '/citation-generator',
   },
+
   {
-    id: 7,
-    icon: "https://assets.quillbot.com/images/theme/light/translator/translator_icon.svg",
-    color: "rgba(0, 0, 0, 0.87)",
-    title: "Translator",
-    path: "/translator",
+    id: 4,
+    icon: '	https://assets.quillbot.com/images/theme/commonImages/co-writer-new.svg',
+    color: 'rgb(49, 157, 255)',
+    title: 'QuillBot Flow',
+    path: '/quilbot-flow',
   },
-];
+]
 const menuToolList = [
   {
     id: 1,
-    icon: "https://assets.quillbot.com/images/theme/commonImages/chrome.png",
-    title: "QuillBot for Chrome",
-    path: "/",
+    icon: 'https://assets.quillbot.com/images/theme/commonImages/chrome.png',
+    title: 'QuillBot for Chrome',
+    path: '/',
   },
   {
     id: 2,
-    icon: "https://assets.quillbot.com/emojis/solid_msword.svg",
-    title: "QuillBot for Word",
-    path: "/",
+    icon: 'https://assets.quillbot.com/emojis/solid_msword.svg',
+    title: 'QuillBot for Word',
+    path: '/',
   },
   {
     id: 3,
-    icon: "https://assets.quillbot.com/emojis/mac_new.svg",
-    title: "QuillBot for macOs",
-    path: "/",
+    icon: 'https://assets.quillbot.com/emojis/mac_new.svg',
+    title: 'QuillBot for macOs',
+    path: '/',
   },
-];
+]
 </script>
 
 <template>
   <div :class="$style.sidebarContainer">
     <div :class="[$style.sidebarItemBorder, $style.sidebarItemBox]">
       <div v-for="item in menuList" :key="item.id">
-        <RouterLink :to="item.path" :class="$style.sidebarItem">
+        <RouterLink :to="item.path" :class="[$style.sidebarItem, isExpand && $style.sidebarItemExpand]">
           <div
             :style="{ backgroundColor: item.color }"
             :class="[
@@ -98,9 +107,9 @@ const menuToolList = [
             :class="$style.sidebarItemIconBox"
             :style="{ backgroundColor: item.color }"
           >
-            <img :src="item.icon" alt="" width="20" height="20" />
+            <img :src="item.icon" alt="" width="20" height="20">
           </div>
-          <img v-else :src="item.icon" alt="" width="24" height="24" />
+          <img v-else :src="item.icon" alt="" width="24" height="24">
           <p
             v-show="isExpand"
             :class="[
@@ -114,7 +123,7 @@ const menuToolList = [
       </div>
     </div>
     <div :class="[$style.sidebarItemBorder, $style.sidebarPemiumItem]">
-      <div :class="$style.sidebarItem">
+      <div :class="[$style.sidebarItem, isExpand && $style.sidebarItemExpand]">
         <div :class="$style.sidebarBorderItem" />
         <Icon
           :class="$style.sidebarItemIcon"
@@ -131,9 +140,9 @@ const menuToolList = [
     </div>
     <div :class="[$style.sidebarItemBorder, $style.sidebarItemBox]">
       <div v-for="item in menuToolList" :key="item.id">
-        <div :class="$style.sidebarItem">
+        <div :class="[$style.sidebarItem, isExpand && $style.sidebarItemExpand]">
           <div :class="$style.sidebarBorderItem" />
-          <img :src="item.icon" alt="" width="24" height="24" />
+          <img :src="item.icon" alt="" width="24" height="24">
           <p v-show="isExpand" :class="$style.sidebarItemTitle">
             {{ item.title }}
           </p>
@@ -146,19 +155,23 @@ const menuToolList = [
         </div>
       </div>
     </div>
-    <div>
-      <div :class="$style.sidebarItem">
+    <div :class="[$style.sidebarItemBorder, $style.sidebarItemBox]">
+      <div :class="[$style.sidebarItem, isExpand && $style.sidebarItemExpand]">
         <div :class="$style.sidebarBorderItem" />
         <Icon :class="$style.sidebarItemIcon" icon="ic:outline-help-outline" />
-        <p v-show="isExpand" :class="$style.sidebarItemTitle">Help Center</p>
+        <p v-show="isExpand" :class="$style.sidebarItemTitle">
+          Help Center
+        </p>
       </div>
-      <div :class="$style.sidebarItem">
+      <div :class="[$style.sidebarItem, isExpand && $style.sidebarItemExpand]">
         <div :class="$style.sidebarBorderItem" />
         <Icon
           :class="$style.sidebarItemIcon"
           icon="material-symbols:mail-outline"
         />
-        <p v-show="isExpand" :class="$style.sidebarItemTitle">Contact us</p>
+        <p v-show="isExpand" :class="$style.sidebarItemTitle">
+          Contact us
+        </p>
       </div>
     </div>
   </div>
@@ -168,7 +181,7 @@ const menuToolList = [
 .sidebarContainer {
   width: fit-content;
   border-right: 1px solid #dee1e3;
-  transition: all 0.3s ease 0.5s;
+  // transition: all 0.3s ease;
   overflow: hidden;
 }
 
@@ -198,6 +211,10 @@ const menuToolList = [
   width: 100%;
   text-decoration: none;
   cursor: pointer;
+
+  &.sidebarItemExpand {
+    width: 210px;
+  }
 
   &:hover {
     background-color: #f5f5f5;

@@ -7,7 +7,7 @@ function toggleSidebar() {
 
 <template>
   <div :class="$style.default">
-    <NavBar :class="$style.defaultHeader" @toggle-sidebar="toggleSidebar" />
+    <NavBar :class="$style.defaultHeader" :is-expand="isExpand" @toggle-sidebar="toggleSidebar" />
     <div :class="$style.defaultBody">
       <SideBar
         :is-expand="isExpand"
@@ -44,7 +44,7 @@ function toggleSidebar() {
 }
 
 .defaultBodySideBar {
-  transition: all 0.3s ease 0.5s;
+  transition: all 0.3s ease;
   width: 50px;
   min-width: 50px;
   background-color: #fff;

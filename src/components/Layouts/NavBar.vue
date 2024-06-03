@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-import { Icon } from "@iconify/vue";
+import { useRoute } from 'vue-router'
+import { Icon } from '@iconify/vue'
 
-const route = useRoute();
-const title = computed(() => {
-  const name = (String(route.name) ?? "").split("-");
-  return name
-    .map((n: string) => n.charAt(0).toUpperCase() + n.slice(1))
-    .join(" ");
-});
+defineProps<{
+  isExpand: boolean
+}>()
 
 defineEmits<{
-  (e: "toggleSidebar"): void;
-}>();
+  (e: 'toggleSidebar'): void
+}>()
+
+const route = useRoute()
+const title = computed(() => {
+  const name = (String(route.name) ?? '').split('-')
+  return name
+    .map((n: string) => n.charAt(0).toUpperCase() + n.slice(1))
+    .join(' ')
+})
 </script>
 
 <template>
@@ -22,7 +26,9 @@ defineEmits<{
         :class="$style.headerIconCollapse"
         @click="$emit('toggleSidebar')"
       >
-        <img src="@/assets/icons/Menu.svg" alt="logo" />
+        <img src="@/assets/icons/Menu.svg" :class="$style.iconMenu" alt="logo">
+        <img v-if="isExpand" src="@/assets/icons/arrow-double-left-color.svg" :class="$style.iconToggleSideBar" alt="logo">
+        <img v-else src="@/assets/icons/arrow-double-right-color.svg" :class="$style.iconToggleSideBar" alt="logo">
       </button>
       <div :class="$style.headerLogo">
         <!-- <img src="@/assets/icons/LogoQuillBot.svg" alt="logo"> -->
@@ -60,14 +66,12 @@ defineEmits<{
             src="@/assets/icons/Diamond.svg"
             :class="$style.headerButtonPremiumIcon"
             alt="notification"
-          />
-          <span :class="$style.headerButtonPremiumText"
-            >Upgrade to Premium</span
           >
+          <span :class="$style.headerButtonPremiumText">Upgrade to Premium</span>
         </button>
         <div :class="$style.headerCenterRightUser">
-          <ButtonIcon tooltipText="Language">
-            <img src="@/assets/icons/User.svg" alt="notification" />
+          <ButtonIcon tooltip-text="Language">
+            <img src="@/assets/icons/User.svg" alt="notification">
           </ButtonIcon>
           <div :class="$style.headerRightPopup">
             <div :class="$style.headerRightPopupItem">
@@ -77,9 +81,7 @@ defineEmits<{
                   :class="$style.headerRightPopupItemChildIcon"
                   style="color: #5f6368"
                 />
-                <span :class="$style.headerRightPopupItemText"
-                  >Login in / Sign up</span
-                >
+                <span :class="$style.headerRightPopupItemText">Login in / Sign up</span>
               </div>
               <div :class="$style.headerRightPopupItemChild">
                 <Icon icon="icon-park-outline:right" style="color: #5f6368" />
@@ -105,9 +107,7 @@ defineEmits<{
                   :class="$style.headerRightPopupItemChildIcon"
                   style="color: #5f6368"
                 />
-                <span :class="$style.headerRightPopupItemText"
-                  >Help Center</span
-                >
+                <span :class="$style.headerRightPopupItemText">Help Center</span>
               </div>
             </div>
             <div :class="$style.headerRightPopupItem">
@@ -157,6 +157,30 @@ defineEmits<{
     object-fit: contain;
     cursor: pointer;
     margin-right: 4px;
+  }
+
+  .iconMenu {
+    display: flex;
+  }
+  .iconToggleSideBar {
+    display: none;
+  }
+  &:hover {
+    img {
+      background-color: #f1f1f1;
+      border-radius: 100px;
+    }
+    .iconMenu {
+      display: none;
+    }
+    .iconToggleSideBar {
+      display: flex;
+    }
+  }
+  &:active {
+    img {
+      background-color: var(--color-primary-opacity)
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+<!-- eslint-disable no-console -->
 <script setup lang="ts">
 let mouseDownedInput: any | null = null
 let lastSelectionStart: number = 0
