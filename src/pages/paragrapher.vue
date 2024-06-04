@@ -538,6 +538,8 @@ async function attachPopover() {
   display: flex;
   border-bottom: 1px solid #e5e5e5;
   background-color: #ffffff;
+  height: 56px;
+
 }
 
 .paragrapherModesTitle {
@@ -554,7 +556,7 @@ async function attachPopover() {
 .paragrapherModesLanguage {
   height: 100%;
   display: flex;
-  padding: 13px 9px;
+  padding: 6px 9px;
   justify-content: center;
   align-items: center;
   cursor: pointer;
@@ -702,7 +704,7 @@ async function attachPopover() {
 .paragrapherContainerCenter {
   width: 10px;
   border-left: 3px solid #44474663;
-  cursor: e-resize;
+  cursor: col-resize;
 
   &:hover {
     border-left-width: 7px;
