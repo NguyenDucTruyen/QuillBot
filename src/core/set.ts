@@ -63,36 +63,3 @@ export function setSelection(element: HTMLElement, option: SetSelectionOptions) 
     setContentEditableSelection(element, option)
 }
 
-// export function setContentEditableSelection(element: HTMLElement, option: SetSelectionOptions) {
-//   function getNodeViaTextPosition(node: Node, position: number, current: number) {
-//     if (node.nodeType === 3) {
-//       if (current <= position && position <= current + (node.nodeValue?.toString().length || 0)) {
-//         const vitri = position - current
-//         return { node, end: node.nodeValue?.toString().length || 0, vitri }
-//       }
-//       else {
-//         const vitri = position - current
-
-//         return { node: false, end: node.nodeValue?.toString().length || 0, vitri }
-//       }
-//     }
-
-//     const children = node.childNodes
-//     const nodeChild: any = getNodeViaTextPosition(children[0], position, current)
-//     return nodeChild
-//   }
-//   const ListNode = Array.from(element.childNodes)
-//   let currentIndex = 0
-//   const range = document.createRange()
-//   for (let i = 0; i < ListNode.length; i++) {
-//     const checkNodeStart = getNodeViaTextPosition(ListNode[i], option.start, currentIndex)
-//     if (checkNodeStart!.node)
-//         range.setStart(checkNodeStart.node, checkNodeStart.vitri)
-
-//     currentIndex = checkNodeStart.end
-//   }
-//   const selection = window.getSelection()
-//   selection?.removeAllRanges()
-//   selection?.addRange(range)
-//   console.log(range)
-// }

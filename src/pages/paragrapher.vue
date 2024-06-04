@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue'
 // import OpenAi from '@/api/generateAI.ts'
 import { computePosition, flip, inline, offset } from '@floating-ui/dom'
 import gemini from '@/api/generateParaphrase.ts'
+import { getSelection, replaceSelection, setSelection } from '@/core'
 
 interface ItemParaphraseText {
   id: number
@@ -117,6 +118,7 @@ const mousePos = ref({
   y: 0,
 })
 let selection: Selection | null = null
+let selectionInfo: any | null = null
 const isRefreshing = ref(false)
 
 async function fetchAnswer() {
@@ -162,13 +164,14 @@ function clearText() {
   textInput.value = ''
 }
 function reSelect() {
-  if (!selection?.anchorNode || !selection.focusNode)
+  if (!selectionInfo)
     return
-  const range = document.createRange()
-  range.setStart(selection?.anchorNode, selection?.anchorOffset || 0)
-  range.setEnd(selection?.focusNode, selection?.focusOffset || 0)
-  selection.removeAllRanges()
-  selection.addRange(range)
+  const setSelectionOption = {
+    start: selectionInfo.start,
+    end: selectionInfo.end,
+    direction: selectionInfo.direction,
+  }
+  setSelection(outPutText.value as HTMLElement, setSelectionOption)
 }
 function isMouseInElement(e: HTMLElement) {
   if (!e?.getBoundingClientRect())
@@ -176,7 +179,6 @@ function isMouseInElement(e: HTMLElement) {
   const eBounding = e.getBoundingClientRect()
   return mousePos.value.x >= eBounding.left && mousePos.value.x <= eBounding.right && mousePos.value.y >= eBounding.top && mousePos.value.y <= eBounding.bottom
 }
-const position = ref({ x: 0, y: 0 })
 function resetStatus() {
   // if (window.getSelection)
   // window.getSelection()?.removeAllRanges()
@@ -255,15 +257,11 @@ onMounted(() => {
     if (!selection?.rangeCount || selection.toString().length === 0)
       return
 
+    selectionInfo = getSelection(outPutText.value)
     const range = selection.getRangeAt(0)
     // Array like
     rect.value = range.getBoundingClientRect()
     childRect.value = Array.from(range.getClientRects())
-
-    position.value = {
-      x: rect.value.left,
-      y: rect.value.bottom,
-    }
   })
 
   document.addEventListener('mousemove', (e) => {
@@ -271,9 +269,8 @@ onMounted(() => {
     mousePos.value.y = e.clientY
   })
 })
-async function copyTextParaphrase() {
-  navigator.clipboard.writeText(paraphraseText.value.current.content)
-  resetStatus()
+async function copyText(text: string) {
+  navigator.clipboard.writeText(text)
 }
 function pasteText() {
   navigator.clipboard
@@ -281,12 +278,13 @@ function pasteText() {
     .then(clipText => (textInput.value = clipText))
 }
 function approveParaphraseContent() {
-  selection = window.getSelection()
-  const range = selection?.getRangeAt(0)
-  range?.deleteContents()
-  const textNode = document.createTextNode(paraphraseText.value.current.content)
-  range?.insertNode(textNode)
-  status.value = 'initial'
+  const optionReplace = {
+    start: selectionInfo.start,
+    end: selectionInfo.end,
+    text: paraphraseText.value.current.content,
+  }
+  replaceSelection(outPutText.value as HTMLElement, optionReplace)
+  resetStatus()
 }
 
 async function attachTooltip() {
@@ -326,6 +324,9 @@ async function attachPopover() {
     popOver.value.style.left = `${posX - 210}px`
     popOver.value.style.position = `${strategy}`
   }
+}
+function updateAnswer() {
+  answer.value = outPutText.value.textContent
 }
 </script>
 
@@ -431,12 +432,20 @@ async function attachPopover() {
           <div
             ref="outPutText"
             :class="$style.paragrapherContainerTextarea"
-            contenteditable
+            :contenteditable="answer.trim() !== ''"
             @mouseup="handleDisplayTooltip"
             @mousedown="resetStatus"
             @blur="handleBlur"
+            @input="updateAnswer"
           >
             {{ answer }}
+          </div>
+          <div v-if="answer" :class="$style.paragrapherContainerRightFooter">
+            <span :class="$style.paragrapherContainerLeftCountWords">{{ countWords(answer) }} words</span>
+            <div :class="$style.copyAnswer" @click="copyText(answer)">
+              <img src="@/assets/icons/copy.svg" :class="$style.iconCopyAnswer" alt="">
+              <img src="@/assets/icons/copy-color.svg" :class="$style.iconCopyAnswerColor" alt="">
+            </div>
           </div>
         </div>
       </div>
@@ -484,7 +493,7 @@ async function attachPopover() {
       <div :class="$style.groupButton">
         <button
           :class="$style.groupButtonCopy"
-          @click="copyTextParaphrase"
+          @click="copyText(paraphraseText.current.content)"
         >
           Copy
         </button>
@@ -713,10 +722,39 @@ async function attachPopover() {
 
 .paragrapherContainerRight {
   display: flex;
+  flex-direction: column;
   width: calc(50% - 5px);
   max-width: 70%;
   min-width: 300px;
   overflow: auto;
+}
+.paragrapherContainerRightFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 66px;
+  padding-top: 12px;
+}
+
+.iconCopyAnswerColor {
+  display: none;
+}
+.copyAnswer {
+  cursor: pointer;
+  height: 100%;
+  img {
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+  }
+  &:hover {
+    .iconCopyAnswer {
+      display: none;
+    }
+    .iconCopyAnswerColor {
+      display: block;
+    }
+  }
 }
 
 .paraphrasePopUp {
