@@ -1,93 +1,99 @@
 <script setup lang="ts">
-
-interface MenuItem {
-  name: string
-  src: string
-  srcDisplay: string
-  hoverSrc: string
-  isPremium: boolean
-}
-
-const menuItems = reactive([
-  {
-    name: 'History',
-    src: '/src/assets/icons/history-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc: '/src/assets/icons/svgHoverDirection/history-svgrepo-com.svg',
-    isPremium: true,
-  },
-  {
-    name: 'Compare Modes',
-    src: '/src/assets/icons/photo-compare-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc: '',
-    isPremium: true,
-  },
-  {
-    name: 'Statistics',
-    src: '/src/assets/icons/analytics-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc: '',
-    isPremium: false,
-  },
-  {
-    name: 'Tone',
-    src: '/src/assets/icons/reaction-emoji-category-02-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc: '',
-    isPremium: true,
-  },
-  {
-    name: 'Setting',
-    src: '/src/assets/icons/setting-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc: '/src/assets/icons/svgHoverDirection/setting-svgrepo-com.svg',
-    isPremium: false,
-  },
-  {
-    name: 'Feedback',
-    src: '/src/assets/icons/message-square-lines-alt-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc:
-      '/src/assets/icons/svgHoverDirection/message-square-lines-alt-svgrepo-com.svg',
-    isPremium: false,
-  },
-  {
-    name: 'Hotkeys',
-    src: '/src/assets/icons/keyboard-svgrepo-com.svg',
-    srcDisplay: '',
-    hoverSrc: '/src/assets/icons/svgHoverDirection/keyboard-svgrepo-com.svg',
-    isPremium: false,
-  },
-])
-
-function hover(item: MenuItem, isHovering: boolean) {
-  nextTick(() => {
-    item.srcDisplay = isHovering ? item.hoverSrc : item.src
-  })
-}
 </script>
 
 <template>
   <div :class="$style.directionMenuContainer">
-    <div
-      v-for="(item, index) in menuItems"
-      :key="index"
-      :class="$style.directionMenuItem"
-    >
-      <img
-        :class="$style.directionMenuItemImg"
-        :src="item.srcDisplay ? item.srcDisplay : item.src"
-        @mouseover="hover(item, true)"
-        @mouseleave="hover(item, false)"
+    <div :class="$style.directionMenuContainerChild">
+      <div
+        :class="[$style.directionMenuItem, $style.directionMenuItemAbleToHover]"
       >
-      <span :class="[item.hoverSrc ? '' : $style.noHoverSrc]">{{
-        item.name
-      }}</span>
-      <div v-if="item.isPremium" :class="$style.directionMenuItemIconPremium">
-        <img src="@/assets/icons/diamond-svgrepo-com.svg" alt="Premium">
+        <img
+          :class="[$style.directionMenuItemImg]"
+          src="@/assets/icons/history-svgrepo-com.svg"
+        >
+        <img
+          :class="$style.directionMenuItemImgHover"
+          src="@/assets/icons/svgHoverDirection/history-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">History</span>
+        <div :class="$style.directionMenuItemIconPremium">
+          <img src="@/assets/icons/diamond-svgrepo-com.svg" alt="Premium">
+        </div>
       </div>
-      <div v-if="item.isPremium" :class="$style.tooltipPremium" />
+      <div
+        :class="$style.directionMenuItem"
+      >
+        <img
+          :class="$style.directionMenuItemImg"
+          src="@/assets/icons/photo-compare-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">Compare Modes</span>
+        <div :class="$style.directionMenuItemIconPremium">
+          <img src="@/assets/icons/diamond-svgrepo-com.svg" alt="Premium">
+        </div>
+      </div>
+      <div
+        :class="$style.directionMenuItem"
+      >
+        <img
+          :class="$style.directionMenuItemImg"
+          src="@/assets/icons/analytics-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">Statistics</span>
+      </div>
+      <div
+        :class="$style.directionMenuItem"
+      >
+        <img
+          :class="$style.directionMenuItemImg"
+          src="@/assets/icons/reaction-emoji-category-02-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">Tone</span>
+        <div :class="$style.directionMenuItemIconPremium">
+          <img src="@/assets/icons/diamond-svgrepo-com.svg" alt="Premium">
+        </div>
+      </div>
+    </div>
+    <div :class="$style.directionMenuContainerChild">
+      <div
+        :class="[$style.directionMenuItem, $style.directionMenuItemAbleToHover]"
+      >
+        <img
+          :class="[$style.directionMenuItemImg]"
+          src="@/assets/icons/setting-svgrepo-com.svg"
+        >
+        <img
+          :class="$style.directionMenuItemImgHover"
+          src="@/assets/icons/svgHoverDirection/setting-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">Setting</span>
+      </div>
+      <div
+        :class="[$style.directionMenuItem, $style.directionMenuItemAbleToHover]"
+      >
+        <img
+          :class="[$style.directionMenuItemImg]"
+          src="@/assets/icons/message-square-lines-alt-svgrepo-com.svg"
+        >
+        <img
+          :class="$style.directionMenuItemImgHover"
+          src="@/assets/icons/svgHoverDirection/message-square-lines-alt-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">Feedback</span>
+      </div>
+      <div
+        :class="[$style.directionMenuItem, $style.directionMenuItemAbleToHover]"
+      >
+        <img
+          :class="[$style.directionMenuItemImg]"
+          src="@/assets/icons/keyboard-svgrepo-com.svg"
+        >
+        <img
+          :class="$style.directionMenuItemImgHover"
+          src="@/assets/icons/svgHoverDirection/keyboard-svgrepo-com.svg"
+        >
+        <span :class="$style.noHoverSr">Hotkeys</span>
+      </div>
     </div>
   </div>
 </template>
@@ -99,6 +105,12 @@ function hover(item: MenuItem, isHovering: boolean) {
   top: 60px;
   display: flex;
   flex-direction: column;
+  min-height: 70%;
+  justify-content: space-between;
+}
+.directionMenuContainerChild {
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
 }
 
@@ -108,17 +120,32 @@ function hover(item: MenuItem, isHovering: boolean) {
   align-items: center;
   justify-content: center;
   position: relative;
-  position: relative;
+  cursor: pointer;
+  color: #c5c6c7;
 }
-
+.directionMenuItemAbleToHover {
+  color: var(--color-gray-darker);
+}
 .directionMenuItemImg {
   margin: 0.5rem;
   width: 1.5rem;
   height: 1.5rem;
 }
+.directionMenuItemImgHover {
+  margin: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: none;
 
-.directionMenuItem:hover {
-  cursor: pointer;
+}
+
+.directionMenuItemAbleToHover:hover {
+  .directionMenuItemImg{
+    display: none;
+  }
+  .directionMenuItemImgHover {
+    display: block;
+  }
 }
 
 .directionMenuItem span {
@@ -143,9 +170,5 @@ function hover(item: MenuItem, isHovering: boolean) {
 .directionMenuItemIconPremium img {
   width: 0.5rem;
   height: 0.5rem;
-}
-
-.noHoverSrc {
-  color: #c5c6c7;
 }
 </style>

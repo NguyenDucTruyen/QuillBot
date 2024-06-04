@@ -605,7 +605,7 @@ async function attachPopover() {
 .paragrapherContainerLeft {
   display: flex;
   flex-direction: column;
-  width: calc(50% - 10px);
+  width: calc(50% - 5px);
   max-width: 70%;
   min-width: 300px;
   position: relative;
@@ -713,9 +713,10 @@ async function attachPopover() {
 
 .paragrapherContainerRight {
   display: flex;
-  width: calc(50% - 10px);
+  width: calc(50% - 5px);
   max-width: 70%;
   min-width: 300px;
+  overflow: auto;
 }
 
 .paraphrasePopUp {
