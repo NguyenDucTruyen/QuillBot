@@ -149,7 +149,7 @@ const menuToolList = [
           <Icon
             v-show="isExpand"
             :class="$style.sidebarItemBoxIcon"
-            style="color: #dc9e00"
+            style="color: #252525"
             icon="material-symbols:ungroup"
           />
         </div>

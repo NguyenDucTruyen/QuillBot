@@ -375,6 +375,10 @@ async function attachPopover() {
             :class="$style.paragrapherIconDelete"
             @click="clearText"
           />
+          <div v-else :class="$style.paragrapherPaste" @click="pasteText">
+            <img src="@/assets/icons/note.svg" :class="$style.paragrapherIconPaste" alt="">
+            <span>Paste Text</span>
+          </div>
           <textarea
             v-model="textInput"
             :class="$style.paragrapherContainerTextarea"
@@ -437,7 +441,7 @@ async function attachPopover() {
         </div>
       </div>
     </div>
-    <RightMenu/>
+    <RightMenu />
     <div
       v-if="status === 'tooltip'"
       ref="tooltip"
@@ -615,6 +619,35 @@ async function attachPopover() {
   height: 24px;
 }
 
+.paragrapherPaste {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  width: 130px;
+  height: 74px;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--color-green);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-green);
+  line-height: 16px;
+  padding: 10px;
+  gap: 4px;
+  font-style: italic;
+  cursor: pointer;
+  &:hover {
+    background-color: var(--color-primary-opacity);
+  }
+}
+.paragrapherIconPaste {
+  width: 30px;
+  height: 30px;
+}
 .inputFile {
   display: none;
 }
@@ -682,7 +715,6 @@ async function attachPopover() {
   max-width: 70%;
   min-width: 300px;
 }
-
 
 .paraphrasePopUp {
   position: fixed;
