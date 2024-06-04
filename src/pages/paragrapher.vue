@@ -254,8 +254,10 @@ function handleBlur() {
 onMounted(() => {
   document.addEventListener('selectionchange', async () => {
     const selection = window.getSelection()
-    if (!selection?.rangeCount || selection.toString().length === 0)
+    if (!selection?.rangeCount || selection.toString().length === 0) {
+      resetStatus()
       return
+    }
 
     selectionInfo = getSelection(outPutText.value)
     const range = selection.getRangeAt(0)
