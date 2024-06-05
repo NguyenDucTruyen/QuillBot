@@ -620,6 +620,7 @@ function updateAnswer() {
   max-width: 70%;
   min-width: 300px;
   position: relative;
+  user-select: none;
 }
 
 .paragrapherIconDelete {
